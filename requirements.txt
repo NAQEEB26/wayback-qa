@@ -1,0 +1,9 @@
+playwright
+beautifulsoup4
+aiohttp
+aiodns
+cchardet
+Pillow
+numpy
+tldextract
+yarl
