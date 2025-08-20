@@ -1,0 +1,68 @@
+name: Run QA + Publish Report
+echo "Viewports: ${{ steps.vars.outputs.viewports }}"
+echo "Max pages: ${{ steps.vars.outputs.max_pages }}"
+echo "Screenshot pages: ${{ steps.vars.outputs.screenshot_pages }}"
+
+
+- name: Run QA
+env:
+PYTHONUNBUFFERED: '1'
+run: |
+mkdir -p build/report
+python qa_wayback_mvp.py \
+--restored "${{ steps.vars.outputs.restored }}" \
+--archive "${{ steps.vars.outputs.archive }}" \
+--out build/report \
+--max-pages "${{ steps.vars.outputs.max_pages }}" \
+--viewports "${{ steps.vars.outputs.viewports }}" \
+--screenshot-pages "${{ steps.vars.outputs.screenshot_pages }}"
+
+
+- name: Prepare static site
+run: |
+mkdir -p public/reports/${{ github.run_id }}
+cp -r build/report/* public/reports/${{ github.run_id }}/
+# simple index linking to the latest run
+cat > public/index.html <<HTML
+<html><body><h1>QA Reports</h1>
+<p>Latest: <a href="reports/${{ github.run_id }}/report.html">Run ${{ github.run_id }}</a></p>
+</body></html>
+HTML
+
+
+- name: Upload artifact (optional)
+uses: actions/upload-artifact@v4
+with:
+name: qa-report-${{ github.run_id }}
+path: build/report
+
+
+- name: Configure Pages
+uses: actions/configure-pages@v5
+
+
+- name: Upload Pages artifact
+uses: actions/upload-pages-artifact@v3
+with:
+path: public
+
+
+- name: Deploy to GitHub Pages
+id: deployment
+uses: actions/deploy-pages@v4
+
+
+- name: Comment report link on Issue (if applicable)
+if: github.event_name == 'issues'
+uses: actions/github-script@v7
+with:
+script: |
+const page = core.getInput('page');
+const url = `${{ steps.deployment.outputs.page_url }}reports/${{ github.run_id }}/report.html`;
+const body = `✅ QA finished. **Report:** ${url}`;
+github.rest.issues.createComment({
+owner: context.repo.owner,
+repo: context.repo.repo,
+issue_number: context.issue.number,
+body
+})
