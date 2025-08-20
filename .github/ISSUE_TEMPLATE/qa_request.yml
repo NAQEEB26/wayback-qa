@@ -1,0 +1,47 @@
+name: "QA Request (Wayback Restoration)"
+description: Submit a restored site to auto-run QA (links/assets + visual diff)
+title: "QA: <client/domain>"
+labels: ["qa"]
+body:
+- type: input
+id: restored_url
+attributes:
+label: Restored Site URL
+description: e.g., https://clientsite.com
+placeholder: https://clientsite.com
+validations:
+required: true
+
+
+- type: input
+id: archive_url
+attributes:
+label: Wayback Snapshot Root URL
+description: e.g., https://web.archive.org/web/20180101000000/http://clientsite.com
+placeholder: https://web.archive.org/web/20180101000000/http://clientsite.com
+validations:
+required: true
+
+
+- type: input
+id: viewports
+attributes:
+label: Viewports (comma-separated WxH)
+placeholder: 1366x768,375x812
+value: 1366x768,375x812
+
+
+- type: input
+id: max_pages
+attributes:
+label: Max pages to crawl
+placeholder: "100"
+value: "100"
+
+
+- type: input
+id: screenshot_pages
+attributes:
+label: Max pages to screenshot & diff
+placeholder: "20"
+value: "20"
